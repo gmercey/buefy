@@ -31,7 +31,7 @@
                 class="dropdown-menu"
                 :class="{ 'is-opened-top': isOpenedTop && !appendToBody }"
                 :style="style"
-                v-show="isActive && (!isEmpty || hasEmptySlot || hasHeaderSlot)"
+                v-show="isActive && (!isEmpty || hasEmptySlot || hasHeaderSlot || hasFooterSlot)"
                 ref="dropdown"
             >
                 <div
@@ -173,7 +173,8 @@ export default {
             style: {},
             _isAutocomplete: true,
             _elementRef: 'input',
-            _bodyEl: undefined // Used to append to body
+            _bodyEl: undefined, // Used to append to body
+            timeOutID: null
         }
     },
     computed: {
@@ -311,11 +312,15 @@ export default {
                     this.calcDropdownInViewportVertical()
                 } else {
                     // Timeout to wait for the animation to finish before recalculating
-                    setTimeout(() => {
+                    this.timeOutID = setTimeout(() => {
                         this.calcDropdownInViewportVertical()
                     }, 100)
                 }
             }
+
+            this.$nextTick(() => {
+                this.$emit('active', active)
+            })
         },
 
         /**
@@ -664,7 +669,7 @@ export default {
         },
         updateAppendToBody() {
             const dropdownMenu = this.$refs.dropdown
-            const trigger = this.$refs.input.$el
+            const trigger = this.$parent.$data._isTaginput ? this.$parent.$el : this.$refs.input.$el
             if (dropdownMenu && trigger) {
                 // update wrapper dropdown
                 const root = this.$data._bodyEl
@@ -725,6 +730,7 @@ export default {
         if (this.appendToBody) {
             removeElement(this.$data._bodyEl)
         }
+        clearTimeout(this.timeOutID)
     }
 }
 </script>

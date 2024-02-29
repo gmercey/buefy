@@ -91,13 +91,19 @@
                             @dragend="handleColumnDragEnd($event, column, index)"
                             @drop="handleColumnDrop($event, column, index)"
                             @dragover="handleColumnDragOver($event, column, index)"
-                            @dragleave="handleColumnDragLeave($event, column, index)">
+                            @dragleave="handleColumnDragLeave($event, column, index)"
+                            @touchstart="handleColumnTouchStart($event, column, index)"
+                            @touchmove="handleColumnTouchMove($event, column, index)"
+                            @touchend="handleColumnTouchEnd($event, column, index)"
+                        >
                             <div
-                                class="th-wrap"
+                                class="th-wrap is-relative"
                                 :class="{
                                     'is-numeric': column.numeric,
                                     'is-centered': column.centered
-                            }">
+                                }"
+                                :style="column.thWrapStyle"
+                            >
                                 <template v-if="column.$scopedSlots && column.$scopedSlots.header">
                                     <b-slot-component
                                         :component="column"
@@ -108,14 +114,14 @@
                                     />
                                 </template>
                                 <template v-else>
-                                    <span class="is-relative">
-                                        {{ column.label }}
-                                        <template
-                                            v-if="sortMultiple &&
-                                                sortMultipleDataComputed &&
-                                                sortMultipleDataComputed.length > 0 &&
-                                                sortMultipleDataComputed.filter(i =>
-                                            i.field === column.field).length > 0">
+                                    {{ column.label }}
+                                    <template
+                                        v-if="sortMultiple &&
+                                            sortMultipleDataComputed &&
+                                            sortMultipleDataComputed.length > 0 &&
+                                            sortMultipleDataComputed.filter(i =>
+                                        i.field === column.field).length > 0">
+                                        <span class="multi-sort-icons">
                                             <b-icon
                                                 :icon="sortIcon"
                                                 :pack="iconPack"
@@ -130,21 +136,21 @@
                                                 class="delete is-small multi-sort-cancel-icon"
                                                 type="button"
                                                 @click.stop="removeSortingPriority(column)"/>
-                                        </template>
+                                        </span>
+                                    </template>
 
-                                        <b-icon
-                                            v-else
-                                            :icon="sortIcon"
-                                            :pack="iconPack"
-                                            both
-                                            :size="sortIconSize"
-                                            class="sort-icon"
-                                            :class="{
-                                                'is-desc': !isAsc,
-                                                'is-invisible': currentSortColumn !== column
-                                            }"
-                                        />
-                                    </span>
+                                    <b-icon
+                                        v-else
+                                        :icon="sortIcon"
+                                        :pack="iconPack"
+                                        both
+                                        :size="sortIconSize"
+                                        class="sort-icon"
+                                        :class="{
+                                            'is-desc': !isAsc,
+                                            'is-invisible': currentSortColumn !== column
+                                        }"
+                                    />
                                 </template>
                             </div>
                         </th>
@@ -179,7 +185,9 @@
                                 :class="{
                                     'is-numeric': column.numeric,
                                     'is-centered': column.centered
-                            }">
+                                }"
+                                :style="column.thWrapStyle"
+                            >
                                 <template
                                     v-if="column.$scopedSlots && column.$scopedSlots.subheading"
                                 >
@@ -205,7 +213,7 @@
                             v-bind="column.thAttrs(column)"
                             :style="column.thStyle"
                             :class="{'is-sticky': column.sticky}">
-                            <div class="th-wrap">
+                            <div class="th-wrap" :style="column.thWrapStyle">
                                 <template v-if="column.searchable">
                                     <template
                                         v-if="column.$scopedSlots
@@ -247,7 +255,11 @@
                             @dragend="handleDragEnd($event, row, index)"
                             @drop="handleDrop($event, row, index)"
                             @dragover="handleDragOver($event, row, index)"
-                            @dragleave="handleDragLeave($event, row, index)">
+                            @dragleave="handleDragLeave($event, row, index)"
+                            @touchstart="handleTouchStart($event, row, index)"
+                            @touchmove="handleTouchMove($event, row, index)"
+                            @touchend="handleTouchEnd($event, row, index)"
+                        >
 
                             <td
                                 v-if="showDetailRowIcon"
@@ -290,7 +302,10 @@
                                         :class="column.getRootClasses(row)"
                                         :style="column.getRootStyle(row)"
                                         :data-label="column.label"
-                                        :props="{ row, column, index, colindex, toggleDetails }"
+                                        :props="{
+                                            row, column, index, colindex,
+                                            toggleDetails, isActiveDetailRow
+                                        }"
                                         @click.native="$emit('cellclick',row,column,index,colindex)"
                                     />
                                 </template>
@@ -392,11 +407,19 @@
             </slot>
         </template>
 
+        <div
+            v-show="mayBeTouchDragging && (isDraggingRow || isDraggingColumn)"
+            ref="draggedCell"
+            class="touch-dragged-cell"
+            :class="touchDraggedCellClasses"
+            v-html="draggedCellContent"
+        />
+
     </div>
 </template>
 
 <script>
-import { getValueByPath, indexOf, multiColumnSort, escapeRegExpChars, toCssWidth, removeDiacriticsFromString, isNil } from '../../utils/helpers'
+import { getValueByPath, indexOf, multiColumnSort, escapeRegExpChars, toCssWidth, removeDiacriticsFromString, isNil, translateTouchAsDragEvent, createAbsoluteElement, removeElement } from '../../utils/helpers'
 import debounce from '../../utils/debounce'
 import { VueInstance } from '../../utils/config'
 import Checkbox from '../checkbox/Checkbox.vue'
@@ -626,7 +649,13 @@ export default {
             firstTimeSort: true, // Used by first time initSort
             _isTable: true, // Used by TableColumn
             isDraggingRow: false,
-            isDraggingColumn: false
+            isDraggingColumn: false,
+            // for touch-enabled devices
+            _selectedRow: null,
+            mayBeTouchDragging: false,
+            touchDragoverTarget: null,
+            _draggedCellEl: undefined,
+            draggedCellContent: ''
         }
     },
     computed: {
@@ -655,6 +684,11 @@ export default {
         tableStyle() {
             return {
                 height: toCssWidth(this.height)
+            }
+        },
+        touchDraggedCellClasses() {
+            return {
+                'has-mobile-cards': this.mobileCards
             }
         },
 
@@ -912,14 +946,10 @@ export default {
                 this.sortMultipleDataLocal = this.sortMultipleDataLocal.filter(
                     (priority) => priority.field !== column.field)
 
-                let formattedSortingPriority = this.sortMultipleDataLocal.map((i) => {
-                    return (i.order && i.order === 'desc' ? '-' : '') + i.field
-                })
-
-                if (formattedSortingPriority.length === 0) {
+                if (this.sortMultipleDataLocal.length === 0) {
                     this.resetMultiSorting()
                 } else {
-                    this.newData = multiColumnSort(this.newData, formattedSortingPriority)
+                    this.newData = multiColumnSort(this.newData, this.sortMultipleDataLocal)
                 }
             }
         },
@@ -978,19 +1008,18 @@ export default {
                 if (existingPriority) {
                     existingPriority.order = existingPriority.order === 'desc' ? 'asc' : 'desc'
                 } else {
-                    this.sortMultipleDataLocal.push(
-                        {field: column.field, order: column.isAsc}
-                    )
+                    this.sortMultipleDataLocal.push({
+                        field: column.field,
+                        order: column.isAsc,
+                        customSort: column.customSort
+                    })
                 }
                 this.doSortMultiColumn()
             }
         },
 
         doSortMultiColumn() {
-            let formattedSortingPriority = this.sortMultipleDataLocal.map((i) => {
-                return (i.order && i.order === 'desc' ? '-' : '') + i.field
-            })
-            this.newData = multiColumnSort(this.newData, formattedSortingPriority)
+            this.newData = multiColumnSort(this.newData, this.sortMultipleDataLocal)
         },
 
         /**
@@ -1143,6 +1172,7 @@ export default {
         selectRow(row, index) {
             this.$emit('click', row)
 
+            this._selectedRow = row // row must be clicked before dragging by touch
             if (this.selected === row) return
             if (!this.isRowSelectable(row)) return
 
@@ -1443,6 +1473,175 @@ export default {
             this.$emit('columndragleave', {event, column, index})
         },
 
+        /**
+        * Starts monitoring drag-by-touch events (row on touch-enabled devices)
+        */
+        handleTouchStart(event, row, index) {
+            if (!this.canDragRow) return
+            if (this.isDraggingColumn) return
+            // drag won't start unless the row has been clicked (tapped)
+            // I think trapping touch-scrolling is annoying
+            if (this._selectedRow !== row) return
+            event.preventDefault()
+            this.mayBeTouchDragging = true
+        },
+        /**
+        * Emits dragover and dragleave events (row on touch-enabled devices)
+        *
+        * Emits also dragstart if this is the first touchmove after touchstart.
+        */
+        handleTouchMove(event, row, index) {
+            if (!this.canDragRow) return
+            if (!this.mayBeTouchDragging) return
+            if (!this.isDraggingRow) {
+                const tr = event.target.closest('tr')
+                this.draggedCellContent = tr
+                    ? `<table class="table"><tr>${tr.innerHTML}</tr></table>`
+                    : event.target.innerHTML
+                this.$refs.draggedCell.style.width = tr
+                    ? `${tr.offsetWidth}px`
+                    : `${event.target.offsetWidth}px`
+                event.target.dispatchEvent(translateTouchAsDragEvent(event, {
+                    type: 'dragstart'
+                }))
+            }
+            const touch = event.touches[0]
+            const target = document.elementFromPoint(touch.clientX, touch.clientY)
+            if (target != null) {
+                if (target !== this.touchDragoverTarget) {
+                    if (this.touchDragoverTarget != null) {
+                        this.touchDragoverTarget.dispatchEvent(
+                            translateTouchAsDragEvent(event, {
+                                type: 'dragleave',
+                                target: this.touchDragoverTarget
+                            })
+                        )
+                    }
+                    this.touchDragoverTarget = target
+                    target.dispatchEvent(
+                        translateTouchAsDragEvent(event, {
+                            type: 'dragover',
+                            target
+                        })
+                    )
+                }
+            } else if (this.touchDragoverTarget != null) {
+                this.touchDragoverTarget.dispatchEvent(
+                    translateTouchAsDragEvent(event, {
+                        type: 'dragleave',
+                        target: this.touchDragoverTarget
+                    })
+                )
+                this.touchDragoverTarget = null
+            }
+            this.updateDraggedCell(touch)
+        },
+        /**
+        * Emits drop and dragend events (row on touch-enabled devices)
+        */
+        handleTouchEnd(event, row, index) {
+            if (!this.canDragRow) return
+            if (this.isDraggingRow) {
+                const touch = event.changedTouches[0]
+                const target = document.elementFromPoint(touch.clientX, touch.clientY)
+                if (target != null) {
+                    target.dispatchEvent(translateTouchAsDragEvent(event, {
+                        type: 'drop',
+                        target
+                    }))
+                }
+                event.target.dispatchEvent(translateTouchAsDragEvent(event, {
+                    type: 'dragend'
+                }))
+                this._selectedRow = null
+            }
+            this.mayBeTouchDragging = false
+        },
+
+        /**
+        * Starts monitoring drag-by-touch events (column on touch-enabled devices)
+        */
+        handleColumnTouchStart(event, column, index) {
+            if (!this.canDragColumn) return
+            if (this.isDraggingRow) return
+            event.preventDefault() // otherwise triggers touch-scrolling
+            this.mayBeTouchDragging = true
+        },
+        /**
+        * Emits dragover and dragleave events (column on touch-enabled devices)
+        *
+        * Also emits dragstart if this is the first touchmove after touchstart.
+        */
+        handleColumnTouchMove(event, column, index) {
+            if (!this.canDragColumn) return
+            if (!this.mayBeTouchDragging) return
+            if (!this.isDraggingColumn) {
+                this.draggedCellContent = event.target.innerHTML
+                this.$refs.draggedCell.style.width = `${event.target.offsetWidth}px`
+                event.target.dispatchEvent(translateTouchAsDragEvent(event, {
+                    type: 'dragstart'
+                }))
+            }
+            const touch = event.touches[0]
+            const target = document.elementFromPoint(touch.clientX, touch.clientY)
+            if (target != null) {
+                if (target !== this.touchDragoverTarget) {
+                    if (this.touchDragoverTarget != null) {
+                        this.touchDragoverTarget.dispatchEvent(
+                            translateTouchAsDragEvent(event, {
+                                type: 'dragleave',
+                                target: this.touchDragoverTarget
+                            })
+                        )
+                    }
+                    this.touchDragoverTarget = target
+                    target.dispatchEvent(
+                        translateTouchAsDragEvent(event, {
+                            type: 'dragover',
+                            target
+                        })
+                    )
+                }
+            } else if (this.touchDragoverTarget != null) {
+                this.touchDragoverTarget.dispatchEvent(
+                    translateTouchAsDragEvent(event, {
+                        type: 'dragleave',
+                        target: this.touchDragoverTarget
+                    })
+                )
+                this.touchDragoverTarget = null
+            }
+            this.updateDraggedCell(touch)
+        },
+        /**
+        * Emits drop and dragend events (column on touch-enabled devices)
+        */
+        handleColumnTouchEnd(event, column, index) {
+            if (!this.canDragColumn) return
+            if (this.isDraggingColumn) {
+                const touch = event.changedTouches[0]
+                const target = document.elementFromPoint(touch.clientX, touch.clientY)
+                if (target != null) {
+                    target.dispatchEvent(translateTouchAsDragEvent(event, {
+                        type: 'drop',
+                        target
+                    }))
+                }
+                event.target.dispatchEvent(translateTouchAsDragEvent(event, {
+                    type: 'dragend'
+                }))
+            }
+            this.mayBeTouchDragging = false
+        },
+
+        updateDraggedCell({ clientX, clientY }) {
+            const cellRect = this.$refs.draggedCell.getBoundingClientRect()
+            const top = clientY + window.scrollY - cellRect.height / 2
+            const left = clientX + window.scrollX - cellRect.width / 2
+            this.$refs.draggedCell.style.top = `calc(${top}px)`
+            this.$refs.draggedCell.style.left = `calc(${left}px)`
+        },
+
         refreshSlots() {
             this.defaultSlots = this.$slots.default || []
         }
@@ -1451,6 +1650,21 @@ export default {
         this.refreshSlots()
         this.checkPredefinedDetailedRows()
         this.checkSort()
+        // appends `draggedCell` to the body whenever `draggable` or
+        // `draggableColumn` becomes true
+        // starts watching here to make sure the DOM is ready
+        function prepareDraggedCell(isDraggable) {
+            if (isDraggable && this.$data._draggedCellEl == null) {
+                this.$data._draggedCellEl = createAbsoluteElement(this.$refs.draggedCell)
+            }
+        }
+        this.$watch('draggable', prepareDraggedCell, { immediate: true })
+        this.$watch('draggableColumn', prepareDraggedCell, { immediate: true })
+    },
+    beforeDestroy() {
+        if (this.$data._draggedCellEl) {
+            removeElement(this.$data._draggedCellEl)
+        }
     }
 }
 </script>
