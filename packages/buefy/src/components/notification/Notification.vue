@@ -61,12 +61,20 @@ const Notification = defineComponent({
         BProgress
     },
     mixins: [MessageMixin],
+    emits: {
+        click: () => true
+    },
     props: {
         position: String,
         ariaCloseLabel: String,
         animation: {
             type: String,
             default: 'fade'
+        }
+    },
+    methods: {
+        click() {
+            this.$emit('click')
         }
     }
 })

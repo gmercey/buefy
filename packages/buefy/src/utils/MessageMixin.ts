@@ -32,7 +32,6 @@ export default defineComponent({
         }
     },
     emits: {
-        click: () => true,
         close: () => true,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         'update:modelValue': (value: boolean) => true
@@ -91,9 +90,6 @@ export default defineComponent({
             this.resetDurationProgress()
             this.$emit('close')
             this.$emit('update:modelValue', false)
-        },
-        click() {
-            this.$emit('click')
         },
         /*
          * Set timer to auto close message
