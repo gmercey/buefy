@@ -215,6 +215,19 @@ describe('BDatepickerTableRow', () => {
         expect(wrapper.vm.eventsDateMatch(day)).toEqual([todayEvent])
     })
 
+    it('matches by day-of-month and not by day-of-week', async () => {
+        const month = 1 // February 2020, 3rd and 10th are the same weekday
+        const day = newDate(2020, month, 10)
+        const events = [
+            { date: newDate(2020, month, 3), type: 'is-warning' },
+            { date: day, type: 'is-primary' }
+        ]
+        await wrapper.setProps({ events })
+        expect(wrapper.vm.eventsDateMatch(day)).toEqual([
+            { date: day, type: 'is-primary' }
+        ])
+    })
+
     it('emit rangeHoverEndDate', async () => {
         await wrapper.setProps({ range: true })
         const thisMonth = new Date().getMonth()
