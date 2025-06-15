@@ -4,5 +4,6 @@ exports[`BField > render correctly 1`] = `
 "<div class="field">
   <!--v-if-->
   <!--v-if-->
+  <!--v-if-->
 </div>"
 `;

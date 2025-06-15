@@ -269,6 +269,171 @@ describe('BField', () => {
             expect(helpWrapper.isVisible()).toBe(true)
             expect(helpWrapper.text()).toEqual(message)
         })
+
+        it('should render message slot when provided instead of message prop', () => {
+            const message = 'Some message prop'
+            const slotMessage = 'Some slot message'
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    message
+                },
+                slots: {
+                    default: BField,
+                    message: `<span>${slotMessage}</span>`
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+            const helpWrapper = wrapper.find('.field').find('p.help')
+            expect(helpWrapper.isVisible()).toBe(true)
+            expect(helpWrapper.text()).toEqual(slotMessage)
+            // Ensure the message prop is not rendered when slot is present
+            expect(helpWrapper.text()).not.toEqual(message)
+        })
+
+        it('should render message slot with proper slot props', () => {
+            const message = ['message1', 'message2']
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    message
+                },
+                slots: {
+                    default: BField,
+                    message: '<template #message="{ messages }">Slot: {{ messages.join(\', \') }}</template>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+            const helpWrapper = wrapper.find('.field').find('p.help')
+            expect(helpWrapper.isVisible()).toBe(true)
+            expect(helpWrapper.text()).toEqual('Slot: message1, message2')
+        })
+
+        it('should apply correct CSS classes to message in horizontal layout', () => {
+            const message = 'Some message'
+            const type = 'is-danger'
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    message,
+                    type
+                },
+                slots: {
+                    default: BField,
+                    message: '<span>Custom message</span>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+            const helpWrapper = wrapper.find('.field').find('p.help')
+            expect(helpWrapper.classes()).toContain('help')
+            expect(helpWrapper.classes()).toContain(type)
+        })
+
+        it('should not duplicate slot content in horizontal fields', () => {
+            const mountOptions = {
+                props: {
+                    horizontal: true
+                },
+                slots: {
+                    default: '<b-input data-testid="test-input" placeholder="Test input"></b-input>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+            const inputs = wrapper.findAll('[data-testid="test-input"]')
+            expect(inputs.length).toBe(1) // Should only render the input once, not duplicated
+        })
+
+        it('should analyze template structure in horizontal fields', () => {
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    message: 'Test message'
+                },
+                slots: {
+                    default: '<b-input data-testid="test-input" placeholder="Test input"></b-input>',
+                    message: '<span data-testid="custom-message">Custom message</span>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+            const inputs = wrapper.findAll('[data-testid="test-input"]')
+            const messages = wrapper.findAll('[data-testid="custom-message"]')
+
+            expect(inputs.length).toBe(1)
+            expect(messages.length).toBe(1)
+        })
+
+        it('should verify message duplication bug is fixed', () => {
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    message: 'Test message'
+                },
+                slots: {
+                    default: '<b-input placeholder="Test input"></b-input>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+
+            // Count how many times the message appears in the rendered HTML
+            const html = wrapper.html()
+            const messageCount = (html.match(/Test message/g) || []).length
+
+            // The message should appear only once
+            expect(messageCount).toBe(1)
+        })
+
+        it('should match ExHorizontal.vue behavior without duplication', () => {
+            // This test simulates the exact scenario from ExHorizontal.vue
+            const mountOptions = {
+                props: {
+                    horizontal: true,
+                    label: 'Subject',
+                    type: 'is-danger',
+                    message: 'Please enter a subject'
+                },
+                slots: {
+                    default: '<b-input name="subject" expanded></b-input>'
+                },
+                global: {
+                    components
+                }
+            }
+            const wrapper = mount(BField, mountOptions)
+
+            // Verify structure
+            expect(wrapper.find('.field.is-horizontal').exists()).toBe(true)
+            expect(wrapper.find('.field-label label').text()).toBe('Subject')
+            expect(wrapper.find('.field-body').exists()).toBe(true)
+
+            // Most importantly: verify message appears only once
+            const html = wrapper.html()
+            const messageCount = (html.match(/Please enter a subject/g) || []).length
+            expect(messageCount).toBe(1)
+
+            // Verify the message has the correct CSS class
+            const helpElement = wrapper.find('p.help')
+            expect(helpElement.exists()).toBe(true)
+            expect(helpElement.classes()).toContain('is-danger')
+            expect(helpElement.text()).toBe('Please enter a subject')
+        })
     })
 
     describe('with grouped and horizontal true', () => {

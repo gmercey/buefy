@@ -28,11 +28,21 @@
         </template>
         <b-field-body
             v-if="horizontal"
-            :message="newMessage ? formattedMessage : ''"
+            :message="$slots.message ? '' : (newMessage ? formattedMessage : '')"
             :type="newType"
         >
             <slot />
         </b-field-body>
+        <p
+            v-if="hasMessage && horizontal && $slots.message"
+            class="help"
+            :class="newType"
+        >
+            <slot
+                name="message"
+                :messages="formattedMessage"
+            />
+        </p>
         <div v-else-if="hasInnerField" class="field-body">
             <b-field
                 :addons="false"
@@ -42,7 +52,7 @@
                 <slot />
             </b-field>
         </div>
-        <template v-else>
+        <template v-else-if="!horizontal">
             <slot />
         </template>
         <p

@@ -26,18 +26,22 @@ exports[`BColorpicker > render correctly 1`] = `
               <!--v-if-->
               <div class="field colorpicker-fields">
                 <!--v-if-->
+                <!--v-if-->
                 <div class="field-body">
                   <div class="field is-grouped">
+                    <!--v-if-->
                     <!--v-if-->
                     <div class="field is-horizontal">
                       <div class="field-label"><label class="label">R</label></div>
                       <div class="field-body">
                         <div class="field">
                           <!--v-if-->
+                          <!--v-if-->
                           <b-input-stub modelvalue="0" type="number" lazy="false" passwordreveal="false" iconclickable="false" hascounter="true" customclass="" iconrightclickable="false" modelmodifiers="[object Object]" size="is-small" aria-label="Red"></b-input-stub>
                           <!--v-if-->
                         </div>
                       </div>
+                      <!--v-if-->
                       <!--v-if-->
                     </div>
                     <div class="field is-horizontal">
@@ -45,10 +49,12 @@ exports[`BColorpicker > render correctly 1`] = `
                       <div class="field-body">
                         <div class="field">
                           <!--v-if-->
+                          <!--v-if-->
                           <b-input-stub modelvalue="0" type="number" lazy="false" passwordreveal="false" iconclickable="false" hascounter="true" customclass="" iconrightclickable="false" modelmodifiers="[object Object]" size="is-small" aria-label="Green"></b-input-stub>
                           <!--v-if-->
                         </div>
                       </div>
+                      <!--v-if-->
                       <!--v-if-->
                     </div>
                     <div class="field is-horizontal">
@@ -56,10 +62,12 @@ exports[`BColorpicker > render correctly 1`] = `
                       <div class="field-body">
                         <div class="field">
                           <!--v-if-->
+                          <!--v-if-->
                           <b-input-stub modelvalue="0" type="number" lazy="false" passwordreveal="false" iconclickable="false" hascounter="true" customclass="" iconrightclickable="false" modelmodifiers="[object Object]" size="is-small" aria-label="Blue"></b-input-stub>
                           <!--v-if-->
                         </div>
                       </div>
+                      <!--v-if-->
                       <!--v-if-->
                     </div>
                     <!--v-if-->
