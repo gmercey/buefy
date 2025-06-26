@@ -259,7 +259,7 @@ export default defineComponent({
             const dayEvents: DatepickerEvent[] = []
 
             for (let i = 0; i < this.events.length; i++) {
-                if (this.events[i].date.getDay() === day.getDay()) {
+                if (this.events[i].date.getDate() === day.getDate()) {
                     dayEvents.push(this.events[i])
                 }
             }
