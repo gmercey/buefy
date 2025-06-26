@@ -19,24 +19,14 @@
             />
         </template>
 
-        <b-dropdown-item :value="true" aria-role="listitem">
-            <div class="media">
-                <b-icon class="media-left" icon="earth"></b-icon>
-                <div class="media-content">
-                    <h3>Public</h3>
-                    <small>Everyone can see</small>
-                </div>
-            </div>
+        <b-dropdown-item :value="true" icon="earth" aria-role="listitem">
+            <h3>Public</h3>
+            <small>Everyone can see</small>
         </b-dropdown-item>
 
-        <b-dropdown-item :value="false" aria-role="listitem">
-            <div class="media">
-                <b-icon class="media-left" icon="account-multiple"></b-icon>
-                <div class="media-content">
-                    <h3>Friends</h3>
-                    <small>Only friends can see</small>
-                </div>
-            </div>
+        <b-dropdown-item :value="false" icon="account-multiple" aria-role="listitem">
+            <h3>Friends</h3>
+            <small>Only friends can see</small>
         </b-dropdown-item>
     </b-dropdown>
 </section>

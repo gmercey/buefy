@@ -40,6 +40,9 @@ $dropdown-disabled-opacity: 0.5 !default;
     }
     .dropdown-menu {
         .dropdown-item {
+            .media {
+                align-items: anchor-center;
+            }
             &.is-disabled {
                 cursor: not-allowed;
                 &:hover {
@@ -50,11 +53,6 @@ $dropdown-disabled-opacity: 0.5 !default;
             &.is-paddingless {
                 padding: 0;
             }
-        }
-        .has-link a {
-            @extend .dropdown-item;
-            padding-right: 3rem;
-            white-space: nowrap;
         }
     }
     &.is-hoverable:not(.is-active) {

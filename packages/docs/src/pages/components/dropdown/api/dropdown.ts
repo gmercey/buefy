@@ -176,6 +176,20 @@ export default [
                 default: '<code>null</code>'
             },
             {
+                name: '<code>label</code>',
+                description: 'The label of the item',
+                type: 'String',
+                values: '—',
+                default: '<code>\'\'</code>'
+            },
+            {
+                name: '<code>icon</code>',
+                description: 'The icon of the item',
+                type: 'String',
+                values: '—',
+                default: '<code>null</code>'
+            },
+            {
                 name: '<code>separator</code>',
                 description: 'Set the item to be a separator',
                 type: 'Boolean',
@@ -199,13 +213,6 @@ export default [
             {
                 name: '<code>custom</code>',
                 description: 'Item is not a clickable item',
-                type: 'Boolean',
-                values: '—',
-                default: '<code>false</code>'
-            },
-            {
-                name: '<code>has-link</code>',
-                description: 'Use it if your item is an anchor tag or <code>router-link</code>',
                 type: 'Boolean',
                 values: '—',
                 default: '<code>false</code>'

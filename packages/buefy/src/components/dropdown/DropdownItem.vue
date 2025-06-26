@@ -1,14 +1,23 @@
 <template>
     <hr v-if="separator" class="dropdown-divider">
     <a
-        v-else-if="!custom && !hasLink"
+        v-else-if="!custom"
         class="dropdown-item"
         :class="anchorClasses"
         @click="selectItem"
         :role="ariaRoleItem"
         :tabindex="isFocusable ? 0 : undefined"
     >
-        <slot />
+        <div class="media">
+            <b-icon
+                class="media-left"
+                v-if="icon"
+                :icon="icon"
+            />
+            <div class="media-content">
+                <h3><slot>{{ label }}</slot></h3>
+            </div>
+        </div>
     </a>
     <div
         v-else
@@ -43,6 +52,8 @@ export default defineComponent({
             type: [String, Number, Boolean, Object, Array, Function] as PropType<ItemValueType>,
             default: null
         },
+        icon: String,
+        label: String,
         separator: Boolean,
         disabled: Boolean,
         custom: Boolean,

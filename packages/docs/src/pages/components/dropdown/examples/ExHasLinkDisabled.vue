@@ -28,33 +28,17 @@
                             Logged as <b>Rafael Beraldo</b>
                         </b-dropdown-item>
                         <hr class="dropdown-divider" />
-                        <b-dropdown-item has-link aria-role="menuitem">
-                            <a href="https://google.com" target="_blank">
-                                <b-icon icon="link"></b-icon>
+                        <b-dropdown-item icon="link" has-link aria-role="menuitem">
+                            <a href="https://google.com" target="_blank" rel="noopener noreferrer" class="is-flex is-align-items-center is-gap-1">
                                 Google (link)
                             </a>
                         </b-dropdown-item>
-                        <b-dropdown-item value="home" aria-role="menuitem">
-                            <b-icon icon="home"></b-icon>
-                            Home
-                        </b-dropdown-item>
-                        <b-dropdown-item value="products" aria-role="menuitem">
-                            <b-icon icon="cart"></b-icon>
-                            Products
-                        </b-dropdown-item>
-                        <b-dropdown-item value="blog" disabled aria-role="menuitem">
-                            <b-icon icon="book-open"></b-icon>
-                            Blog
-                        </b-dropdown-item>
+                        <b-dropdown-item value="home" icon="home" label="Home" aria-role="menuitem" />
+                        <b-dropdown-item value="products" icon="cart" label="Products" aria-role="menuitem" />
+                        <b-dropdown-item value="blog" icon="book-open" label="Blog" disabled aria-role="menuitem" />
                         <hr class="dropdown-divider" aria-role="menuitem" />
-                        <b-dropdown-item value="settings">
-                            <b-icon icon="gear"></b-icon>
-                            Settings
-                        </b-dropdown-item>
-                        <b-dropdown-item value="logout" aria-role="menuitem">
-                            <b-icon icon="logout"></b-icon>
-                            Logout
-                        </b-dropdown-item>
+                        <b-dropdown-item value="settings" icon="cog" label="Settings" />
+                        <b-dropdown-item value="logout" icon="logout" label="Logout" aria-role="menuitem" />
                     </b-dropdown>
                 </div>
             </div>

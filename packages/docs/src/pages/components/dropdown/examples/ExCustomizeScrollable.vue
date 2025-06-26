@@ -44,15 +44,10 @@
                 v-for="(menu, index) in menus"
                 :key="index"
                 :value="menu"
+                :icon="menu.icon"
+                :label="menu.text"
                 aria-role="listitem"
-            >
-                <div class="media">
-                    <b-icon class="media-left" :icon="menu.icon"></b-icon>
-                    <div class="media-content">
-                        <h3>{{ menu.text }}</h3>
-                    </div>
-                </div>
-            </b-dropdown-item>
+            />
         </b-dropdown>
     </section>
 </template>
@@ -93,7 +88,7 @@ export default defineComponent({
                 { icon: "dolly", text: "Logistics" },
                 { icon: "clock-check", text: "Jobs" },
                 { icon: "cart-arrow-right", text: "Cart" },
-                { icon: "settings", text: "Configuration" },
+                { icon: "cog", text: "Configuration" },
             ],
         };
     },
