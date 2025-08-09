@@ -119,26 +119,19 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="navbar-item">
-                        <b-icon
-                            icon="white-balance-sunny"
+                        <b-button
+                            @click="toggleTheme"
+                            type="is-light"
                             size="is-small"
-                            :class="{'is-warning': theme === 'light' }"
-                        />
-                        <b-switch
-                            v-model="theme"
-                            type="is-warning"
-                            true-value="dark"
-                            false-value="light"
-                            size="is-small"
-                            label="Theme"
-                        />
-                        <b-icon
-                            icon="moon-waning-crescent"
-                            size="is-small"
-                            :class="{'is-primary': theme === 'dark' }"
-                        />
+                            icon-left
+                        >
+                            <b-icon
+                                :icon="theme === 'dark'
+                                    ? 'moon-waning-crescent'
+                                    : 'white-balance-sunny'"
+                            />
+                        </b-button>
                     </div>
                 </div>
             </div>
@@ -188,6 +181,10 @@ export default defineComponent({
     methods: {
         closeMenu() {
             this.isMenuActive = false
+        },
+        toggleTheme() {
+            const newTheme = this.theme === 'light' ? 'dark' : 'light'
+            this.$emit('theme-changed', newTheme === 'light')
         },
         toggleHtmlClip() {
             document.documentElement.classList.toggle(
