@@ -36,7 +36,7 @@
                 <a
                     class="navbar-item"
                     :class="{ 'has-text-discord': !light }"
-                    href="https://discordapp.com/invite/ZkdFJMr"
+                    href="https://discord.buefy.org/"
                     target="_blank"
                     title="Discord"
                 >
@@ -46,11 +46,15 @@
                 <a
                     class="navbar-item"
                     :class="{ 'has-text-twitter': !light }"
-                    href="https://twitter.com/buefycss"
+                    href="https://x.com/buefycss"
                     target="_blank"
                     title="Twitter"
                 >
-                    <b-icon icon="twitter" />
+                    <b-icon
+                        pack="fa"
+                        custom-class="fa-brands"
+                        icon="x-twitter"
+                    />
                 </a>
 
                 <span
@@ -91,7 +95,7 @@
                             Info
                         </div>
 
-                        <div class="navbar-dropdown is-boxed">
+                        <div class="navbar-dropdown">
                             <strong class="navbar-item is-version">
                                 <span class="has-text-primary">Buefy version</span>
                                 <span class="has-text-grey">{{ version }}</span>
@@ -104,14 +108,30 @@
                             </strong>
 
                             <hr class="navbar-divider">
-                            <a
-                                class="navbar-item"
-                                href="https://github.com/buefy/buefy/releases"
-                                target="_blank"
-                            >
-                                Changelogs
-                            </a>
+                            <div class="navbar-item">
+                                <a
+                                    href="https://github.com/buefy/buefy/releases"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Changelogs
+                                </a>
+                            </div>
                         </div>
+                    </div>
+                    <div class="navbar-item">
+                        <b-button
+                            @click="toggleTheme"
+                            type="is-light"
+                            size="is-small"
+                            icon-left
+                        >
+                            <b-icon
+                                :icon="theme === 'dark'
+                                    ? 'moon-waning-crescent'
+                                    : 'white-balance-sunny'"
+                            />
+                        </b-button>
                     </div>
                 </div>
             </div>
@@ -129,8 +149,12 @@ import bulmaPackage from 'bulma/package.json'
 
 export default defineComponent({
     components: { BIcon },
+    emits: ['theme-changed'],
     props: {
-        light: Boolean
+        light: {
+            type: Boolean,
+            default: true
+        }
     },
     data() {
         return {
@@ -139,9 +163,28 @@ export default defineComponent({
             bulmaVersion: bulmaPackage.version
         }
     },
+    computed: {
+        theme: {
+            get() {
+                return this.light ? 'light' : 'dark'
+            },
+            set(newTheme: string) {
+                this.$emit('theme-changed', newTheme === 'light')
+            }
+        }
+    },
+    watch: {
+        isMenuActive() {
+            this.toggleHtmlClip()
+        }
+    },
     methods: {
         closeMenu() {
             this.isMenuActive = false
+        },
+        toggleTheme() {
+            const newTheme = this.theme === 'light' ? 'dark' : 'light'
+            this.$emit('theme-changed', newTheme === 'light')
         },
         toggleHtmlClip() {
             document.documentElement.classList.toggle(
